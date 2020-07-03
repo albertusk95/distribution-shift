@@ -4,7 +4,7 @@ import stats.configs.{ConfigUtils, DistributionEvalConfig}
 import stats.distributions.DistributionEvaluation
 import stats.sources.SourceFactory
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 object EvaluateDistribution {
   def main(args: Array[String]): Unit =
@@ -30,8 +30,16 @@ object EvaluateDistribution {
     val sample_two_df =
       SourceFactory.of(config.source.format, config.source.path_to_second_sample).get.readData()
 
-    val statistics =
-      DistributionEvaluation.evaluate(sample_one_df, sample_two_df, config.eval_method)
+    if (Util.checkColumnAvailability(sample_one_df, sample_two_df, config.compared_col)) {
+      DistributionEvaluation.evaluate(
+        sample_one_df,
+        sample_two_df,
+        config.compared_col,
+        config.eval_method)
+    }
+    else {
+      throw new Exception("One or more columns to compare doesn't exist in the data")
+    }
   }
 
   private def readConfig(file: String): Try[DistributionEvalConfig] =
