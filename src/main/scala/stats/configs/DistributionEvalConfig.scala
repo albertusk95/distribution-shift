@@ -1,6 +1,6 @@
 package stats.configs
 
 case class DistributionEvalConfig(
-  eval_method: String,
-  compared_col: ColumnConfig,
+  evalMethod: String,
+  comparedCol: ColumnConfig,
   source: SourceConfig)

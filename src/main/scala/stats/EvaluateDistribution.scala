@@ -25,17 +25,17 @@ object EvaluateDistribution {
   }
 
   private def processOne(config_path: String, config: DistributionEvalConfig): Unit = {
-    val sample_one_df =
-      SourceFactory.of(config.source.format, config.source.path_to_first_sample).get.readData()
-    val sample_two_df =
-      SourceFactory.of(config.source.format, config.source.path_to_second_sample).get.readData()
+    val sampleOneDf =
+      SourceFactory.of(config.source.format, config.source.pathToFirstSample).get.readData()
+    val sampleTwoDf =
+      SourceFactory.of(config.source.format, config.source.pathToSecondSample).get.readData()
 
-    if (Util.checkColumnAvailability(sample_one_df, sample_two_df, config.compared_col)) {
+    if (Util.checkColumnAvailability(sampleOneDf, sampleTwoDf, config.comparedCol)) {
       DistributionEvaluation.evaluate(
-        sample_one_df,
-        sample_two_df,
-        config.compared_col,
-        config.eval_method)
+        sampleOneDf,
+        sampleTwoDf,
+        config.comparedCol,
+        config.evalMethod)
     }
     else {
       throw new Exception("One or more columns to compare doesn't exist in the data")

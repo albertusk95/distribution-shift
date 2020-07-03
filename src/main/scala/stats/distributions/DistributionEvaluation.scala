@@ -1,21 +1,20 @@
 package stats.distributions
 
+import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest
 import org.apache.spark.sql.DataFrame
 import stats.configs.ColumnConfig
 import stats.constants.DistributionConstants
 
 object DistributionEvaluation {
   def evaluate(
-    sample_one_df: DataFrame,
-    sample_two_df: DataFrame,
+    sampleOneDf: DataFrame,
+    sampleTwoDf: DataFrame,
     comparedColConfig: ColumnConfig,
     evalMethod: String): Double = {
     evalMethod match {
       // [TODO] add other distribution eval approaches here
-      case DistributionConstants.KSTEST => evaluateKSTest(sample_one_df, sample_two_df)
+      case DistributionConstants.KSTEST =>
+        KSTest.evaluate(sampleOneDf, sampleTwoDf, comparedColConfig)
     }
   }
-
-  private def evaluateKSTest(sample_one_df: DataFrame, sample_two_df: DataFrame): Double =
-    0.5
 }

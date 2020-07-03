@@ -1,3 +1,3 @@
 package stats.configs
 
-case class ColumnConfig(sample_one_column: String, sample_two_column: String)
+case class ColumnConfig(sampleOneColumn: String, sampleTwoColumn: String)
