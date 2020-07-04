@@ -19,7 +19,7 @@ This repo provides methods of measuring how two distributions differ.
 - Two-sample Kolmogorov-Smirnov test
     - Currently, this test only reports the D-statistic without the test of significance
 
-## Possible Future Features
+## Possible Next Features
 
 - Other distribution comparison methods, such as KL divergence
 - Test of significance
@@ -68,3 +68,4 @@ Take a look at the following config.
 - PRs are welcome!
 - You may add other distribution comparison methods, such as KL divergence
 - You also may add a feature for test of significance
+- Bug fixes and features request
