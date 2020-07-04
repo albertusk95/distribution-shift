@@ -66,6 +66,7 @@ object KSTest {
 
     val filledUnionedSamples =
       fillNullInUnionedSamples(unionedSamples, windowFillers)
+
     filledUnionedSamples
       .withColumn(
         KSTestConstants.ECDF_DIFFERENCE,
