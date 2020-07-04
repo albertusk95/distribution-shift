@@ -1,10 +1,11 @@
 package stats
 
+import org.apache.spark.sql.SparkSession
 import stats.configs.{ConfigUtils, DistributionEvalConfig}
 import stats.distributions.DistributionEvaluation
 import stats.sources.SourceFactory
 
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 object EvaluateDistribution {
   def main(args: Array[String]): Unit =
@@ -30,12 +31,17 @@ object EvaluateDistribution {
     val sampleTwoDf =
       SourceFactory.of(config.source.format, config.source.pathToSecondSample).get.readData()
 
-    if (Util.checkColumnAvailability(sampleOneDf, sampleTwoDf, config.comparedCol)) {
-      DistributionEvaluation.evaluate(
+    if (
+      Util.areColumnsAvailable(sampleOneDf, sampleTwoDf, config.comparedCol)
+      && Util.areNumericTypeColumns(sampleOneDf, sampleTwoDf, config.comparedCol)
+    ) {
+      val evalStatus = DistributionEvaluation.evaluate(
         sampleOneDf,
         sampleTwoDf,
         config.comparedCol,
         config.evalMethod)
+
+      SparkSession.builder.getOrCreate.createDataFrame(Seq(evalStatus)).show()
     }
     else {
       throw new Exception("One or more columns to compare doesn't exist in the data")

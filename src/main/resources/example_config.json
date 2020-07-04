@@ -1,0 +1,12 @@
+{
+  "eval_method": "kstest",
+  "compared_col": {
+    "sample_one_column": "to_compare_one",
+    "sample_two_column": "to_compare_two"
+  },
+  "source": {
+    "format": "csv",
+    "path_to_first_sample": "/Users/albertus.kelvin/IdeaProjects/ks-test/src/main/resources/example_sample_one.csv",
+    "path_to_second_sample": "/Users/albertus.kelvin/IdeaProjects/ks-test/src/main/resources/example_sample_two.csv"
+  }
+}
