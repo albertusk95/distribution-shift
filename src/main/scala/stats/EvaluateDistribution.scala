@@ -44,7 +44,8 @@ object EvaluateDistribution {
       SparkSession.builder.getOrCreate.createDataFrame(Seq(evalStatus)).show()
     }
     else {
-      throw new Exception("One or more columns to compare doesn't exist in the data")
+      throw new Error(
+        "One or more columns to compare doesn't exist in the data OR columns are not numeric types")
     }
   }
 
