@@ -4,7 +4,7 @@ This repo provides methods of measuring how two distributions differ.
 
 ## Quickstart
 
-- Download the latest jar file
+- Download the latest code in <a href="https://github.com/albertusk95/distribution-shift/releases">releases</a> tab
 - Create configuration files. See the <a href="https://github.com/albertusk95/distribution-shift/blob/master/src/main/resources/example_config.json">example</a>.
 - Run with `java -cp <application_jar> stats.EvaluateDistribution <path_to_config_a> <path_to_config_b> ...`
 
