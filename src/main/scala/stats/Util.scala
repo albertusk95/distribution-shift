@@ -6,24 +6,24 @@ import stats.configs.ColumnConfig
 
 object Util {
   def areColumnsAvailable(
-    sampleOneDf: DataFrame,
-    sampleTwoDf: DataFrame,
+    originDf: DataFrame,
+    currentDf: DataFrame,
     comparedColConfig: ColumnConfig): Boolean = {
-    val sampleOneCol = comparedColConfig.sampleOneColumn
-    val sampleTwoCol = comparedColConfig.sampleTwoColumn
+    val originSampleCol = comparedColConfig.originSampleColumn
+    val currentSampleCol = comparedColConfig.currentSampleColumn
 
-    sampleOneDf.columns.contains(sampleOneCol) && sampleTwoDf.columns.contains(sampleTwoCol)
+    originDf.columns.contains(originSampleCol) && currentDf.columns.contains(currentSampleCol)
   }
 
   def areNumericTypeColumns(
-    sampleOneDf: DataFrame,
-    sampleTwoDf: DataFrame,
+    originDf: DataFrame,
+    currentDf: DataFrame,
     comparedColConfig: ColumnConfig): Boolean = {
-    val sampleOneCol = comparedColConfig.sampleOneColumn
-    val sampleTwoCol = comparedColConfig.sampleTwoColumn
+    val originSampleCol = comparedColConfig.originSampleColumn
+    val currentSampleCol = comparedColConfig.currentSampleColumn
 
-    sampleOneDf.schema(sampleOneCol).dataType != StringType && sampleTwoDf
-      .schema(sampleTwoCol)
+    originDf.schema(originSampleCol).dataType != StringType && currentDf
+      .schema(currentSampleCol)
       .dataType != StringType
   }
 }

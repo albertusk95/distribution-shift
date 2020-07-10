@@ -1,12 +1,17 @@
 {
   "eval_method": "kstest",
   "compared_col": {
-    "sample_one_column": "",
-    "sample_two_column": ""
+    "origin_sample_column": "",
+    "current_sample_column": ""
   },
   "source": {
     "format": "",
-    "path_to_first_sample": "",
-    "path_to_second_sample": ""
+    "path_to_origin_sample": "",
+    "path_to_current_sample": ""
+  },
+  "options": {
+    "method": "",
+    "numOfBin": null,
+    "rounding": null
   }
 }

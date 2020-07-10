@@ -2,33 +2,18 @@ package stats.distributions
 
 import org.apache.spark.sql.{DataFrame, functions => F}
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
-import stats.configs.ColumnConfig
-import stats.constants.KSTestConstants
+import stats.configs.OptionsConfig
+import stats.constants.{DistributionGeneralConstants, KSTestConstants}
 
-object KSTest {
-  def evaluate(
-    sampleOneDf: DataFrame,
-    sampleTwoDf: DataFrame,
-    comparedColConfig: ColumnConfig): Double = {
-    val sampleOneColumn = comparedColConfig.sampleOneColumn
-    val sampleTwoColumn = comparedColConfig.sampleTwoColumn
+object KSTest extends DistributionComparator {
+  def evaluate(originDf: DataFrame, currentDf: DataFrame, optionsConfig: OptionsConfig): Double = {
+    val cumSumSampleOneDf = computeCumulativeSum(originDf)
+    val cumSumSampleTwoDf = computeCumulativeSum(currentDf)
 
-    val sampleOneWithEqualizedComparedColDf =
-      equalizeComparedColumnName(sampleOneDf, sampleOneColumn)
-    val sampleTwoWithEqualizedComparedColDf =
-      equalizeComparedColumnName(sampleTwoDf, sampleTwoColumn)
-
-    val cumSumSampleOneDf = computeCumulativeSum(
-      sampleOneWithEqualizedComparedColDf.select(KSTestConstants.KSTEST_COMPARED_COLUMN))
-    val cumSumSampleTwoDf = computeCumulativeSum(
-      sampleTwoWithEqualizedComparedColDf.select(KSTestConstants.KSTEST_COMPARED_COLUMN))
-
-    val empiricalCumDistFuncSampleOneDf = computeEmpiricalCDF(cumSumSampleOneDf)
-      .select(KSTestConstants.KSTEST_COMPARED_COLUMN, KSTestConstants.ECDF)
-      .withColumnRenamed(KSTestConstants.ECDF, KSTestConstants.ECDF_SAMPLE_ONE)
-    val empiricalCumDistFuncSampleTwoDf = computeEmpiricalCDF(cumSumSampleTwoDf)
-      .select(KSTestConstants.KSTEST_COMPARED_COLUMN, KSTestConstants.ECDF)
-      .withColumnRenamed(KSTestConstants.ECDF, KSTestConstants.ECDF_SAMPLE_TWO)
+    val empiricalCumDistFuncSampleOneDf =
+      computeEmpiricalCDF(cumSumSampleOneDf, KSTestConstants.ECDF_SAMPLE_ONE)
+    val empiricalCumDistFuncSampleTwoDf =
+      computeEmpiricalCDF(cumSumSampleTwoDf, KSTestConstants.ECDF_SAMPLE_TWO)
 
     val diffEmpiricalCumDistFuncDf =
       computeEmpiricalCDFDifference(
@@ -38,19 +23,17 @@ object KSTest {
     getMaxECDFDifference(diffEmpiricalCumDistFuncDf)
   }
 
-  private def equalizeComparedColumnName(df: DataFrame, column: String): DataFrame =
-    df.withColumn(KSTestConstants.KSTEST_COMPARED_COLUMN, F.col(column))
-
   private def computeCumulativeSum(df: DataFrame): DataFrame = {
-    val window = Window.orderBy(KSTestConstants.KSTEST_COMPARED_COLUMN)
+    val window = Window.orderBy(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
     df.withColumn(
       KSTestConstants.CUMSUM,
-      F.count(KSTestConstants.KSTEST_COMPARED_COLUMN).over(window))
+      F.count(DistributionGeneralConstants.DSHIFT_COMPARED_COL).over(window))
   }
 
-  private def computeEmpiricalCDF(df: DataFrame): DataFrame = {
+  private def computeEmpiricalCDF(df: DataFrame, renamedECDF: String): DataFrame = {
     val totalObservations = df.agg(F.max(KSTestConstants.CUMSUM)).head.get(0)
-    df.withColumn(KSTestConstants.ECDF, F.col(KSTestConstants.CUMSUM) / F.lit(totalObservations))
+    df.withColumn(renamedECDF, F.col(KSTestConstants.CUMSUM) / F.lit(totalObservations))
+      .select(DistributionGeneralConstants.DSHIFT_COMPARED_COL, renamedECDF)
   }
 
   private def computeEmpiricalCDFDifference(

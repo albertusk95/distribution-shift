@@ -26,20 +26,22 @@ object EvaluateDistribution {
   }
 
   private def processOne(config_path: String, config: DistributionEvalConfig): Unit = {
-    val sampleOneDf =
-      SourceFactory.of(config.source.format, config.source.pathToFirstSample).get.readData()
-    val sampleTwoDf =
-      SourceFactory.of(config.source.format, config.source.pathToSecondSample).get.readData()
+    val originDf =
+      SourceFactory.of(config.source.format, config.source.pathToOriginSample).get.readData()
+    val currentDf =
+      SourceFactory.of(config.source.format, config.source.pathToCurrentSample).get.readData()
 
     if (
-      Util.areColumnsAvailable(sampleOneDf, sampleTwoDf, config.comparedCol)
-      && Util.areNumericTypeColumns(sampleOneDf, sampleTwoDf, config.comparedCol)
+      Util.areColumnsAvailable(originDf, currentDf, config.comparedCol)
+      && Util.areNumericTypeColumns(originDf, currentDf, config.comparedCol)
     ) {
-      val evalStatus = DistributionEvaluation.evaluate(
-        sampleOneDf,
-        sampleTwoDf,
-        config.comparedCol,
-        config.evalMethod)
+      val evalStatus =
+        DistributionEvaluation.evaluate(
+          originDf,
+          currentDf,
+          config.evalMethod,
+          config.comparedCol,
+          config.options)
 
       SparkSession.builder.getOrCreate.createDataFrame(Seq(evalStatus)).show()
     }

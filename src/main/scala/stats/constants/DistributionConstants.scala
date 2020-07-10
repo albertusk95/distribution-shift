@@ -13,3 +13,7 @@ object KSTestConstants {
   val KSTEST_COMPARED_COLUMN = "compared_column"
   val TOTAL_OBSERVATIONS = "total_observations"
 }
+
+object DistributionGeneralConstants {
+  val DSHIFT_COMPARED_COL = "dshift_compared_col"
+}
