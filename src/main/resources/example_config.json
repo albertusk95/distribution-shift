@@ -1,16 +1,16 @@
 {
   "eval_method": "kldivergence",
   "compared_col": {
-    "origin_sample_column": "to_compare_one",
-    "current_sample_column": "to_compare_two"
+    "origin_sample_column": "",
+    "current_sample_column": ""
   },
   "source": {
-    "format": "csv",
-    "path_to_origin_sample": "/Users/albertus.kelvin/IdeaProjects/ks-test/src/main/resources/example_sample_one.csv",
-    "path_to_current_sample": "/Users/albertus.kelvin/IdeaProjects/ks-test/src/main/resources/example_sample_two.csv"
+    "format": "",
+    "path_to_origin_sample": "",
+    "path_to_current_sample": ""
   },
   "options": {
-    "method": "normal",
+    "method": "",
     "numOfBin": null,
     "rounding": null
   }

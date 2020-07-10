@@ -12,10 +12,14 @@ object KLDivergence extends DistributionComparator {
     val smoothedOriginSampleDf = smoothSample(originDf, currentDf)
     val smoothedCurrentSampleDf = smoothSample(currentDf, originDf)
 
-    val originSampleProbaDistrDf = computeProbaDistr(smoothedOriginSampleDf)
-    val currentSampleProbaDistrDf = computeProbaDistr(smoothedCurrentSampleDf)
+    val originSampleProbaDistrDf = computeProbaDistr(
+      smoothedOriginSampleDf,
+      KLDivergenceConstants.DSHIFT_KLDIV_ORIGIN_PROBA_DISTR)
+    val currentSampleProbaDistrDf = computeProbaDistr(
+      smoothedCurrentSampleDf,
+      KLDivergenceConstants.DSHIFT_KLDIV_CURRENT_PROBA_DISTR)
 
-    0.5
+    computeKLDivStatistic(originSampleProbaDistrDf, currentSampleProbaDistrDf)
   }
 
   private def smoothSample(targetDf: DataFrame, complementDf: DataFrame): DataFrame = {
@@ -39,12 +43,38 @@ object KLDivergence extends DistributionComparator {
       .union(observedTargetSampleCountDf)
   }
 
-  private def computeProbaDistr(df: DataFrame): DataFrame = {
+  private def computeProbaDistr(df: DataFrame, probaDistrColName: String): DataFrame = {
     val totalObservations =
       df.agg(F.sum(F.col(KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY))).first.get(0)
 
     df.withColumn(
-      KLDivergenceConstants.DSHIFT_KLDIV_PROBA_DISTR,
-      F.col(KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY) / F.lit(totalObservations))
+        probaDistrColName,
+        F.col(KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY) / F.lit(totalObservations))
+      .drop(KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY)
+  }
+
+  private def computeKLDivStatistic(
+    originSampleProbaDistrDf: DataFrame,
+    currentSampleProbaDistrDf: DataFrame): Double = {
+    val pairOfProbaDistrDf = originSampleProbaDistrDf
+      .join(
+        currentSampleProbaDistrDf,
+        Seq(DistributionGeneralConstants.DSHIFT_COMPARED_COL),
+        "inner")
+
+    pairOfProbaDistrDf
+      .withColumn(
+        KLDivergenceConstants.DSHIFT_KLDIV_STATISTIC,
+        F.col(KLDivergenceConstants.DSHIFT_KLDIV_ORIGIN_PROBA_DISTR) * F.log(
+          F.col(KLDivergenceConstants.DSHIFT_KLDIV_ORIGIN_PROBA_DISTR) / F.col(
+            KLDivergenceConstants.DSHIFT_KLDIV_CURRENT_PROBA_DISTR))
+      )
+      .drop(
+        KLDivergenceConstants.DSHIFT_KLDIV_ORIGIN_PROBA_DISTR,
+        KLDivergenceConstants.DSHIFT_KLDIV_CURRENT_PROBA_DISTR)
+      .agg(F.sum(F.col(KLDivergenceConstants.DSHIFT_KLDIV_STATISTIC)))
+      .first
+      .get(0)
+      .asInstanceOf[Double]
   }
 }
