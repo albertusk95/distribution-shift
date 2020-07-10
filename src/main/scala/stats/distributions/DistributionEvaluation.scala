@@ -41,6 +41,8 @@ object DistributionEvaluation {
       // [TODO] add other distribution eval approaches here
       case DistributionConstants.KSTEST =>
         KSTest.evaluate(tmpOriginDf, tmpCurrentDf, optionsConfig)
+      case DistributionConstants.KLDIVERGENCE =>
+        KLDivergence.evaluate(tmpOriginDf, tmpCurrentDf, optionsConfig)
     }
 
     DistributionEvaluationStatus(evalMethod, statistic)

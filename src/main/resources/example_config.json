@@ -1,5 +1,5 @@
 {
-  "eval_method": "kstest",
+  "eval_method": "kldivergence",
   "compared_col": {
     "origin_sample_column": "",
     "current_sample_column": ""
