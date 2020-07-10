@@ -1,6 +1,6 @@
 # Distribution Comparison
 
-This repo provides methods of measuring how two distributions differ.
+This repo provides methods of measuring how two empirical distributions differ.
 
 ## Quickstart
 
@@ -17,11 +17,12 @@ This repo provides methods of measuring how two distributions differ.
 ## Current Features
 
 - Two-sample Kolmogorov-Smirnov test
-    - Currently, this test only reports the D-statistic without the test of significance
+    - Currently, this test only reports the D-statistic without test of significance
+- Kullback–Leibler divergence
 
 ## Possible Next Features
 
-- Other distribution comparison methods, such as KL divergence
+- Other distribution comparison methods
 - Test of significance
 
 ## Configuration
@@ -48,6 +49,7 @@ Take a look at the following config.
 - The method used to evaluate how two distributions differ
 - Currently supported methods:
     - Two-sample KS test
+    - KL divergence
 
 ### compared_col
 
@@ -66,6 +68,6 @@ Take a look at the following config.
 ## Contribute
 
 - PRs are welcome!
-- You may add other distribution comparison methods, such as KL divergence
+- You may add other distribution comparison methods
 - You also may add a feature for test of significance
 - Bug fixes and features request
