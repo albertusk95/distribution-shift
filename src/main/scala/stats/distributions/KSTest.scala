@@ -2,14 +2,11 @@ package stats.distributions
 
 import org.apache.spark.sql.{DataFrame, functions => F}
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
-import stats.configs.ColumnConfig
+import stats.configs.OptionsConfig
 import stats.constants.{DistributionGeneralConstants, KSTestConstants}
 
 object KSTest extends DistributionComparator {
-  def evaluate(
-    originDf: DataFrame,
-    currentDf: DataFrame,
-    comparedColConfig: ColumnConfig): Double = {
+  def evaluate(originDf: DataFrame, currentDf: DataFrame, optionsConfig: OptionsConfig): Double = {
     val cumSumSampleOneDf = computeCumulativeSum(originDf)
     val cumSumSampleTwoDf = computeCumulativeSum(currentDf)
 
