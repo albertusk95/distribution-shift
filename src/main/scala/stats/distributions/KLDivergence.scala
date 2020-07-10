@@ -19,10 +19,9 @@ object KLDivergence extends DistributionComparator {
   }
 
   private def smoothSample(targetDf: DataFrame, complementDf: DataFrame): DataFrame = {
-    val unObservedTargetSampleDf = complementDf.join(
-      targetDf,
-      Seq(DistributionGeneralConstants.DSHIFT_COMPARED_COL),
-      "left_anti")
+    val unObservedTargetSampleDf = complementDf
+      .join(targetDf, Seq(DistributionGeneralConstants.DSHIFT_COMPARED_COL), "left_anti")
+      .distinct()
 
     val unObservedTargetSampleCountDf =
       unObservedTargetSampleDf.withColumn(
@@ -32,6 +31,7 @@ object KLDivergence extends DistributionComparator {
     val observedTargetSampleCountDf = targetDf
       .groupBy(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
       .count()
+      .withColumnRenamed("count", KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY)
 
     val columns = observedTargetSampleCountDf.columns
     unObservedTargetSampleCountDf
@@ -39,5 +39,12 @@ object KLDivergence extends DistributionComparator {
       .union(observedTargetSampleCountDf)
   }
 
-  private def computeProbaDistr(df: DataFrame) = DataFrame {}
+  private def computeProbaDistr(df: DataFrame): DataFrame = {
+    val totalObservations =
+      df.agg(F.sum(F.col(KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY))).first.get(0)
+
+    df.withColumn(
+      KLDivergenceConstants.DSHIFT_KLDIV_PROBA_DISTR,
+      F.col(KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY) / F.lit(totalObservations))
+  }
 }
