@@ -5,11 +5,14 @@ import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import stats.configs.ColumnConfig
 import stats.constants.KSTestConstants
 
-object KSTest {
+object KSTest extends DistributionComparator {
   def evaluate(
-    sampleOneDf: DataFrame,
-    sampleTwoDf: DataFrame,
+    originDf: DataFrame,
+    currentDf: DataFrame,
     comparedColConfig: ColumnConfig): Double = {
+    val sampleOneDf = originDf
+    val sampleTwoDf = currentDf
+
     val sampleOneColumn = comparedColConfig.sampleOneColumn
     val sampleTwoColumn = comparedColConfig.sampleTwoColumn
 
