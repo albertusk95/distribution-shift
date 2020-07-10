@@ -1,8 +1,43 @@
 package stats.distributions
 
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, functions => F}
 import stats.configs.OptionsConfig
+import stats.constants.{DistributionGeneralConstants, KLDivergenceConstants}
 
 object KLDivergence extends DistributionComparator {
-  def evaluate(originDf: DataFrame, currentDf: DataFrame, optionsConfig: OptionsConfig): Double = {}
+  override def evaluate(
+    originDf: DataFrame,
+    currentDf: DataFrame,
+    optionsConfig: OptionsConfig): Double = {
+    val smoothedOriginSampleDf = smoothSample(originDf, currentDf)
+    val smoothedCurrentSampleDf = smoothSample(currentDf, originDf)
+
+    val originSampleProbaDistrDf = computeProbaDistr(smoothedOriginSampleDf)
+    val currentSampleProbaDistrDf = computeProbaDistr(smoothedCurrentSampleDf)
+
+    0.5
+  }
+
+  private def smoothSample(targetDf: DataFrame, complementDf: DataFrame): DataFrame = {
+    val unObservedTargetSampleDf = complementDf.join(
+      targetDf,
+      Seq(DistributionGeneralConstants.DSHIFT_COMPARED_COL),
+      "left_anti")
+
+    val unObservedTargetSampleCountDf =
+      unObservedTargetSampleDf.withColumn(
+        KLDivergenceConstants.DSHIFT_KLDIV_SAMPLE_FREQUENCY,
+        F.lit(KLDivergenceConstants.DSHIFT_KLDIV_UNOBSERVED_SAMPLE_FREQUENCY))
+
+    val observedTargetSampleCountDf = targetDf
+      .groupBy(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
+      .count()
+
+    val columns = observedTargetSampleCountDf.columns
+    unObservedTargetSampleCountDf
+      .select(columns.head, columns.tail: _*)
+      .union(observedTargetSampleCountDf)
+  }
+
+  private def computeProbaDistr(df: DataFrame) = DataFrame {}
 }
