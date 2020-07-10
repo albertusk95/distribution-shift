@@ -36,7 +36,12 @@ object EvaluateDistribution {
       && Util.areNumericTypeColumns(originDf, currentDf, config.comparedCol)
     ) {
       val evalStatus =
-        DistributionEvaluation.evaluate(originDf, currentDf, config.comparedCol, config.evalMethod)
+        DistributionEvaluation.evaluate(
+          originDf,
+          currentDf,
+          config.evalMethod,
+          config.comparedCol,
+          config.options)
 
       SparkSession.builder.getOrCreate.createDataFrame(Seq(evalStatus)).show()
     }

@@ -8,5 +8,10 @@
     "format": "",
     "path_to_origin_sample": "",
     "path_to_current_sample": ""
+  },
+  "options": {
+    "method": "",
+    "numOfBin": null
+    "rounding": null
   }
 }
