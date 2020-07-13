@@ -13,27 +13,19 @@ object DistributionEvaluation {
     evalMethod: String,
     comparedColConfig: ColumnConfig,
     optionsConfig: OptionsConfig): DistributionEvaluationStatus = {
-
     val originCol = comparedColConfig.originSampleColumn
     val currentCol = comparedColConfig.currentSampleColumn
 
-    var tmpOriginDf = originDf
-      .filter(!F.isnull(F.col(originCol)))
-      .withColumnRenamed(originCol, DistributionGeneralConstants.DSHIFT_COMPARED_COL)
-      .select(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
-    var tmpCurrentDf = currentDf
-      .filter(!F.isnull(F.col(currentCol)))
-      .withColumnRenamed(currentCol, DistributionGeneralConstants.DSHIFT_COMPARED_COL)
-      .select(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
+    var tmpOriginDf = filterOutNulls(originDf, originCol)
+    var tmpCurrentDf = filterOutNulls(currentDf, currentCol)
+
+    tmpOriginDf = standardizeColName(tmpOriginDf, originCol)
+    tmpCurrentDf = standardizeColName(tmpCurrentDf, currentCol)
 
     optionsConfig.rounding match {
       case Some(rounding) =>
-        tmpOriginDf = tmpOriginDf.withColumn(
-          DistributionGeneralConstants.DSHIFT_COMPARED_COL,
-          F.round(F.col(DistributionGeneralConstants.DSHIFT_COMPARED_COL), rounding))
-        tmpCurrentDf = tmpCurrentDf.withColumn(
-          DistributionGeneralConstants.DSHIFT_COMPARED_COL,
-          F.round(F.col(DistributionGeneralConstants.DSHIFT_COMPARED_COL), rounding))
+        tmpOriginDf = roundValues(tmpOriginDf, rounding)
+        tmpCurrentDf = roundValues(tmpCurrentDf, rounding)
       case None =>
     }
 
@@ -46,5 +38,17 @@ object DistributionEvaluation {
     }
 
     DistributionEvaluationStatus(evalMethod, statistic)
+  }
+
+  private def filterOutNulls(df: DataFrame, colName: String): DataFrame =
+    df.filter(!F.isnull(F.col(colName)))
+
+  private def standardizeColName(df: DataFrame, colName: String): DataFrame =
+    df.select(colName).withColumnRenamed(colName, DistributionGeneralConstants.DSHIFT_COMPARED_COL)
+
+  private def roundValues(df: DataFrame, rounding: Int): DataFrame = {
+    df.withColumn(
+      DistributionGeneralConstants.DSHIFT_COMPARED_COL,
+      F.round(F.col(DistributionGeneralConstants.DSHIFT_COMPARED_COL), rounding))
   }
 }
