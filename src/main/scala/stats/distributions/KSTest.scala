@@ -11,9 +11,9 @@ object KSTest extends DistributionComparator {
     val cumSumSampleTwoDf = computeCumulativeSum(currentDf)
 
     val empiricalCumDistFuncSampleOneDf =
-      computeEmpiricalCDF(cumSumSampleOneDf, KSTestConstants.ECDF_SAMPLE_ONE)
+      computeEmpiricalCDF(cumSumSampleOneDf, KSTestConstants.DSHIFT_ECDF_SAMPLE_ONE)
     val empiricalCumDistFuncSampleTwoDf =
-      computeEmpiricalCDF(cumSumSampleTwoDf, KSTestConstants.ECDF_SAMPLE_TWO)
+      computeEmpiricalCDF(cumSumSampleTwoDf, KSTestConstants.DSHIFT_ECDF_SAMPLE_TWO)
 
     val diffEmpiricalCumDistFuncDf =
       computeEmpiricalCDFDifference(
@@ -26,13 +26,13 @@ object KSTest extends DistributionComparator {
   private def computeCumulativeSum(df: DataFrame): DataFrame = {
     val window = Window.orderBy(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
     df.withColumn(
-      KSTestConstants.CUMSUM,
+      KSTestConstants.DSHIFT_CUMSUM,
       F.count(DistributionGeneralConstants.DSHIFT_COMPARED_COL).over(window))
   }
 
   private def computeEmpiricalCDF(df: DataFrame, renamedECDF: String): DataFrame = {
-    val totalObservations = df.agg(F.max(KSTestConstants.CUMSUM)).head.get(0)
-    df.withColumn(renamedECDF, F.col(KSTestConstants.CUMSUM) / F.lit(totalObservations))
+    val totalObservations = df.agg(F.max(KSTestConstants.DSHIFT_CUMSUM)).head.get(0)
+    df.withColumn(renamedECDF, F.col(KSTestConstants.DSHIFT_CUMSUM) / F.lit(totalObservations))
       .select(DistributionGeneralConstants.DSHIFT_COMPARED_COL, renamedECDF)
   }
 
@@ -40,9 +40,9 @@ object KSTest extends DistributionComparator {
     ecdfSampleOne: DataFrame,
     ecdfSampleTwo: DataFrame): DataFrame = {
     val sampleOneWithECDFSampleTwo =
-      ecdfSampleOne.withColumn(KSTestConstants.ECDF_SAMPLE_TWO, F.lit(null))
+      ecdfSampleOne.withColumn(KSTestConstants.DSHIFT_ECDF_SAMPLE_TWO, F.lit(null))
     val sampleTwoWithECDFSampleOne =
-      ecdfSampleTwo.withColumn(KSTestConstants.ECDF_SAMPLE_ONE, F.lit(null))
+      ecdfSampleTwo.withColumn(KSTestConstants.DSHIFT_ECDF_SAMPLE_ONE, F.lit(null))
     val unionedSamples = sampleOneWithECDFSampleTwo.unionByName(sampleTwoWithECDFSampleOne)
 
     val windowFillers: Seq[WindowSpec] = getWindowFillers
@@ -52,23 +52,25 @@ object KSTest extends DistributionComparator {
 
     filledUnionedSamples
       .withColumn(
-        KSTestConstants.ECDF_DIFFERENCE,
-        F.abs(F.col(KSTestConstants.ECDF_SAMPLE_ONE) - F.col(KSTestConstants.ECDF_SAMPLE_TWO)))
+        KSTestConstants.DSHIFT_ECDF_DIFFERENCE,
+        F.abs(
+          F.col(KSTestConstants.DSHIFT_ECDF_SAMPLE_ONE) - F.col(
+            KSTestConstants.DSHIFT_ECDF_SAMPLE_TWO)))
   }
 
   private def getWindowFillers: Seq[WindowSpec] = {
     val windowFillerSampleOne = Window
       .orderBy(
         Seq(
-          F.col(KSTestConstants.KSTEST_COMPARED_COLUMN),
-          F.col(KSTestConstants.ECDF_SAMPLE_ONE).asc_nulls_last): _*)
+          F.col(DistributionGeneralConstants.DSHIFT_COMPARED_COL),
+          F.col(KSTestConstants.DSHIFT_ECDF_SAMPLE_ONE).asc_nulls_last): _*)
       .rowsBetween(Window.unboundedPreceding, Window.currentRow)
 
     val windowFillerSampleTwo = Window
       .orderBy(
         Seq(
-          F.col(KSTestConstants.KSTEST_COMPARED_COLUMN),
-          F.col(KSTestConstants.ECDF_SAMPLE_TWO).asc_nulls_last): _*)
+          F.col(DistributionGeneralConstants.DSHIFT_COMPARED_COL),
+          F.col(KSTestConstants.DSHIFT_ECDF_SAMPLE_TWO).asc_nulls_last): _*)
       .rowsBetween(Window.unboundedPreceding, Window.currentRow)
 
     Seq(windowFillerSampleOne, windowFillerSampleTwo)
@@ -79,17 +81,19 @@ object KSTest extends DistributionComparator {
     val windowFillerSampleTwo = windowFillers.tail.head
 
     df.withColumn(
-        KSTestConstants.ECDF_SAMPLE_ONE,
-        F.last(KSTestConstants.ECDF_SAMPLE_ONE, ignoreNulls = true).over(windowFillerSampleOne)
+        KSTestConstants.DSHIFT_ECDF_SAMPLE_ONE,
+        F.last(KSTestConstants.DSHIFT_ECDF_SAMPLE_ONE, ignoreNulls = true)
+          .over(windowFillerSampleOne)
       )
       .withColumn(
-        KSTestConstants.ECDF_SAMPLE_TWO,
-        F.last(KSTestConstants.ECDF_SAMPLE_TWO, ignoreNulls = true).over(windowFillerSampleTwo)
+        KSTestConstants.DSHIFT_ECDF_SAMPLE_TWO,
+        F.last(KSTestConstants.DSHIFT_ECDF_SAMPLE_TWO, ignoreNulls = true)
+          .over(windowFillerSampleTwo)
       )
       .na
       .fill(0.0)
   }
 
   private def getMaxECDFDifference(df: DataFrame): Double =
-    df.agg(F.max(KSTestConstants.ECDF_DIFFERENCE)).head.get(0).asInstanceOf[Double]
+    df.agg(F.max(KSTestConstants.DSHIFT_ECDF_DIFFERENCE)).head.get(0).asInstanceOf[Double]
 }

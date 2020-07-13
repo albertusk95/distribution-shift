@@ -27,6 +27,7 @@ dependencies {
 
     implementation group: 'org.apache.spark', name: "spark-sql_$scalaVersion", version: "$sparkVersion"
     implementation group: 'org.apache.spark', name: "spark-core_$scalaVersion", version: "$sparkVersion"
+    implementation group: 'org.apache.spark', name: "spark-mllib_$scalaVersion", version: "$sparkVersion"
 
     implementation group: 'io.circe', name: "circe-core_$scalaVersion", version: '0.12.0-M3'
     implementation group: 'io.circe', name: "circe-generic_$scalaVersion", version: '0.12.0-M3'
