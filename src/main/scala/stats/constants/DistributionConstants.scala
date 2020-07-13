@@ -26,4 +26,7 @@ object KLDivergenceConstants {
 
 object DistributionGeneralConstants {
   val DSHIFT_COMPARED_COL = "dshift_compared_col"
+
+  val DSHIFT_BINNED = "binned"
+  val DSHIFT_BINNED_COLUMN = "dshift_binned_column"
 }

@@ -1,5 +1,6 @@
 package stats.distributions
 
+import org.apache.spark.ml.feature.QuantileDiscretizer
 import org.apache.spark.sql.{DataFrame, functions => F}
 import stats.configs.{ColumnConfig, OptionsConfig}
 import stats.constants.{DistributionConstants, DistributionGeneralConstants}
@@ -16,25 +17,43 @@ object DistributionEvaluation {
     val originCol = comparedColConfig.originSampleColumn
     val currentCol = comparedColConfig.currentSampleColumn
 
-    var tmpOriginDf = filterOutNulls(originDf, originCol)
-    var tmpCurrentDf = filterOutNulls(currentDf, currentCol)
+    val tmpOriginNonNullsDf = filterOutNulls(originDf, originCol)
+    val tmpCurrentNonNullsDf = filterOutNulls(currentDf, currentCol)
 
-    tmpOriginDf = standardizeColName(tmpOriginDf, originCol)
-    tmpCurrentDf = standardizeColName(tmpCurrentDf, currentCol)
+    val tmpOriginStandardizedColDf = standardizeColName(tmpOriginNonNullsDf, originCol)
+    val tmpCurrentStandardizedColDf = standardizeColName(tmpCurrentNonNullsDf, currentCol)
 
-    optionsConfig.rounding match {
+    val (tmpOriginAndRoundedDf, tmpCurrentAndRoundedDf) = optionsConfig.rounding match {
       case Some(rounding) =>
-        tmpOriginDf = roundValues(tmpOriginDf, rounding)
-        tmpCurrentDf = roundValues(tmpCurrentDf, rounding)
-      case None =>
+        (
+          roundValues(tmpOriginStandardizedColDf, rounding),
+          roundValues(tmpCurrentStandardizedColDf, rounding))
+      case None => (tmpOriginStandardizedColDf, tmpCurrentStandardizedColDf)
+    }
+
+    val (tmpOriginAndAppliedMethodDf, tmpCurrentAndAppliedMethodDf) = optionsConfig.method match {
+      case DistributionGeneralConstants.DSHIFT_BINNED =>
+        (
+          discretizeDf(
+            tmpOriginAndRoundedDf,
+            tmpCurrentAndRoundedDf,
+            optionsConfig.numOfBin.getOrElse(10)),
+          discretizeDf(
+            tmpCurrentAndRoundedDf,
+            tmpOriginAndRoundedDf,
+            optionsConfig.numOfBin.getOrElse(10)))
+      case _ => (tmpOriginAndRoundedDf, tmpCurrentAndRoundedDf)
     }
 
     val statistic = evalMethod match {
-      // [TODO] add other distribution eval approaches here
+      // [TODO] add other distribution comparison methods here
       case DistributionConstants.KSTEST =>
-        KSTest.evaluate(tmpOriginDf, tmpCurrentDf, optionsConfig)
+        KSTest.evaluate(tmpOriginAndAppliedMethodDf, tmpCurrentAndAppliedMethodDf, optionsConfig)
       case DistributionConstants.KLDIVERGENCE =>
-        KLDivergence.evaluate(tmpOriginDf, tmpCurrentDf, optionsConfig)
+        KLDivergence.evaluate(
+          tmpOriginAndAppliedMethodDf,
+          tmpCurrentAndAppliedMethodDf,
+          optionsConfig)
     }
 
     DistributionEvaluationStatus(evalMethod, statistic)
@@ -50,5 +69,24 @@ object DistributionEvaluation {
     df.withColumn(
       DistributionGeneralConstants.DSHIFT_COMPARED_COL,
       F.round(F.col(DistributionGeneralConstants.DSHIFT_COMPARED_COL), rounding))
+  }
+
+  private def discretizeDf(
+    targetDf: DataFrame,
+    complementDf: DataFrame,
+    numOfBin: Int): DataFrame = {
+    val unionedDf = targetDf.union(complementDf)
+    val discretizer = new QuantileDiscretizer()
+      .setInputCol(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
+      .setOutputCol(DistributionGeneralConstants.DSHIFT_BINNED_COLUMN)
+      .setNumBuckets(numOfBin)
+
+    discretizer
+      .fit(unionedDf)
+      .transform(targetDf)
+      .drop(DistributionGeneralConstants.DSHIFT_COMPARED_COL)
+      .withColumnRenamed(
+        DistributionGeneralConstants.DSHIFT_BINNED_COLUMN,
+        DistributionGeneralConstants.DSHIFT_COMPARED_COL)
   }
 }
