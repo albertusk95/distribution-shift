@@ -6,13 +6,12 @@ object DistributionConstants {
 }
 
 object KSTestConstants {
-  val CUMSUM = "cumsum"
-  val ECDF = "ecdf"
-  val ECDF_SAMPLE_ONE = "ecdf_sample_one"
-  val ECDF_SAMPLE_TWO = "ecdf_sample_two"
-  val ECDF_DIFFERENCE = "ecdf_difference"
-  val KSTEST_COMPARED_COLUMN = "compared_column"
-  val TOTAL_OBSERVATIONS = "total_observations"
+  val DSHIFT_CUMSUM = "dshift_cumsum"
+  val DSHIFT_ECDF = "dshift_ecdf"
+  val DSHIFT_ECDF_SAMPLE_ONE = "dshift_ecdf_sample_one"
+  val DSHIFT_ECDF_SAMPLE_TWO = "dshift_ecdf_sample_two"
+  val DSHIFT_ECDF_DIFFERENCE = "dshift_ecdf_difference"
+  val DSHIFT_TOTAL_OBSERVATIONS = "dshift_total_observations"
 }
 
 object KLDivergenceConstants {
